@@ -33,11 +33,11 @@ How to use it
 
 ##### General Usage:
 
-    $ ./check.php --path="..." --pathLevel="2" [--searchOutdated] [--searchInsecure] [--ignoreModified] [--warnModified] [--checkModificationOnlyFoundInTer]
+    $ ./check.php --path="..." --pathLevel="2" [--searchOutdated] [--searchInsecure] [--ignoreModified] [--warnModified] [--checkModificationOnlyFoundInTer] [--ignoreExtensions]
 
 ##### My CronJob:
 
-    30 5 * * 1 /var/www/TYPO3Security/check.php --path="/var/www/" --pathLevel="2" --searchOutdated --searchInsecure --checkModificationOnlyFoundInTer --ignoreModified
+    30 5 * * 1 /var/www/TYPO3Security/check.php --path="/var/www/" --pathLevel="2" --searchOutdated --searchInsecure --checkModificationOnlyFoundInTer --ignoreModified --ignoreExtensions="newloginbox,powermail=1.6.10"
 
 ### Params
 
@@ -76,6 +76,13 @@ If option is set will inform about every modified extension
 ##### checkModificationOnlyFoundInTer
 
 If option is set will check for modification only if extension is represented in TER.
+
+##### ignoreExtensions
+
+This option is able to get a comma separated list of extensions in two different formats:
+
+* `extensionName` will ignore all Extensions with given extensionName
+* `extensionName=version` will ignore all Extensions with given extensionName and setted version. Multible times the same extensionName is allowed.
 
 How to contribute
 -----------------
