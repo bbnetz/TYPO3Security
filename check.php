@@ -71,6 +71,11 @@ class TYPO3Security {
 	protected $inTer = array();
 
 	/**
+	 * @var array $ignoreExtensions<'extensionName' => array('versionNumber', ...)>
+	 */
+	protected $ignoreExtensions = array();
+
+	/**
 	 * @var boolean $searchInsecure if enabled will search all insecureExtensions
 	 */
 	protected $searchInsecure = false;
@@ -83,7 +88,7 @@ class TYPO3Security {
 	/**
 	 * @var boolean $warnModified if enabled will warn modifiedExtensions
 	 */
-	protected $warnModified = true;
+	protected $warnModified = false;
 
 	/**
 	 * @var boolean $ignoreModified if enabled will ignore all modifiedExtensions in insecureSearch and outdatedSearch
@@ -110,7 +115,8 @@ class TYPO3Security {
 				'searchInsecure::',
 				'ignoreModified::',
 				'warnModified::',
-				'checkModificationOnlyFoundInTer::'
+				'checkModificationOnlyFoundInTer::',
+				'ignoreExtensions::'
 			)
 		);
 		if(!isset($ops['path']))
@@ -130,6 +136,8 @@ class TYPO3Security {
 			$this->warnModified = true;
 		if(isset($ops['checkModificationOnlyFoundInTer']))
 			$this->checkModificationOnlyFoundInTer = true;
+		if(isset($ops['ignoreExtensions']))
+			$this->ignoreExtensions = $this->fetchIgnoreExtensions($ops['ignoreExtensions']);
 	}
 
 	/**
@@ -230,8 +238,10 @@ class TYPO3Security {
 				if(isset($this->insecureExtensions[$extensionKey])) {
 					foreach($this->insecureExtensions[$extensionKey] as $insecureVersion) {
 						if($insecureVersion[0] >= $extensionVersion[0]) {
-							echo 'Insecure Extension: '.$extensionKey.' ('.$extensionVersion[1].') found in '.$path.PHP_EOL;
-							break;
+							if(!$this->isIgnored($extensionKey, $extensionVersion)) {
+								echo 'Insecure Extension: '.$extensionKey.' ('.$extensionVersion[1].') found in '.$path.PHP_EOL;
+								break;
+							}
 						}
 					}
 				}
@@ -256,7 +266,7 @@ class TYPO3Security {
 				}
 				$newest = $this->newestExtensions[$extensionKey];
 				if($newest === false) continue;
-				if($extensionVersion[0] < $newest[0])
+				if($extensionVersion[0] < $newest[0] && !$this->isIgnored($extensionKey, $extensionVersion))
 					echo 'Old Extension: '.$extensionKey.' ('.$extensionVersion[1].' / '.$newest[1].') found in '.$path.PHP_EOL;
 			}
 		}
@@ -306,7 +316,7 @@ class TYPO3Security {
 			}
 			if($extensionVersion !== false) {
 				$return[$extensionName] = array($extensionVersion, $found[1], $this->checkMd5($extFile, $extensionMd5));
-				if($this->warnModified && $return[$extensionName][2])
+				if($this->warnModified && $return[$extensionName][2] && !$this->isIgnored($extensionName, $extensionVersion))
 					echo 'Modified Extension '.$extensionName.' found in '.$path.PHP_EOL;
 			}
 		}
@@ -375,6 +385,54 @@ class TYPO3Security {
 		$this->newestExtensions[$extensionKey] = array($this->calcVersion($version), $version);
 	}
 
+	/**
+	 * function fetchIgnoreExtensions
+	 * Itterates through given string and builds ignorableExtension array
+	 *
+	 * @param string $extensionList the usersInput to ignore
+	 * @return array $ignoreExtensions<'extensionName' => array('versionNumber', ...)>
+	 */
+	protected function fetchIgnoreExtensions($extensionList) {
+		$return =  array();
+		$extensions = explode(',',$extensionList);
+		foreach($extensions as $extension) {
+			$tmp = explode('=', $extension);
+			if(isset($return[trim($tmp[0])])) {
+				if(isset($tmp[1])) {
+					$tmpArray[] = trim($tmp[1]);
+				}else{
+					$tmpArray[] = false;
+				}
+				$return[trim($tmp[0])][] = $tmpArray;
+			}else{
+				if(isset($tmp[1])){
+					$tmpArray = array(trim($tmp[1]));
+				}else{
+					$tmpArray = array(false);
+				}
+				$return[trim($tmp[0])] = $tmpArray;
+			}
+		}
+		return $return;
+	}
+
+	/**
+	 * function isIgnored
+	 *
+	 * 
+	 * @param string $extensionKey the extensionKey to check
+	 * @param array $extensionVersion the version of this extension
+	 * @return boolean true if 
+	 */
+	protected function isIgnored($extensionKey, $extensionVersion) {
+		if(!isset($this->ignoreExtensions[$extensionKey]))
+			return false;
+		foreach($this->ignoreExtensions[$extensionKey] as $version) {
+			if($version === false) return true;
+			if($version == $extensionVersion[1]) return true;
+		}
+		return false;
+	}
 }
 
 $typo3security = new TYPO3Security();
