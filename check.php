@@ -386,43 +386,42 @@ class TYPO3Security {
 	}
 
 	/**
-	 * function fetchIgnoreExtensions
-	 * Itterates through given string and builds ignorableExtension array
-	 *
-	 * @param string $extensionList the usersInput to ignore
-	 * @return array $ignoreExtensions<'extensionName' => array('versionNumber', ...)>
-	 */
-	protected function fetchIgnoreExtensions($extensionList) {
-		$return =  array();
-		$extensions = explode(',',$extensionList);
-		foreach($extensions as $extension) {
-			$tmp = explode('=', $extension);
-			if(isset($return[trim($tmp[0])])) {
-				if(isset($tmp[1])) {
-					$tmpArray[] = trim($tmp[1]);
-				}else{
-					$tmpArray[] = false;
-				}
-				$return[trim($tmp[0])][] = $tmpArray;
-			}else{
-				if(isset($tmp[1])){
-					$tmpArray = array(trim($tmp[1]));
-				}else{
-					$tmpArray = array(false);
-				}
-				$return[trim($tmp[0])] = $tmpArray;
-			}
-		}
-		return $return;
-	}
+         * function fetchIgnoreExtensions
+         * Itterates through given string and builds ignorableExtension array
+         *
+         * @param string $extensionList the usersInput to ignore
+         * @return array $ignoreExtensions<'extensionName' => array('versionNumber', ...)>
+         */
+        protected function fetchIgnoreExtensions($extensionList) {
+                $return =  array();
+                $extensions = explode(',',$extensionList);
+                foreach($extensions as $extension) {
+                        $tmp = explode('=', $extension);
+                        if(isset($return[trim($tmp[0])])) {
+                                if(isset($tmp[1])) {
+                                        $return[trim($tmp[0])][] = trim($tmp[1]);
+                                }else{
+                                        $return[trim($tmp[0])][] = false;
+                                }
+                        }else{
+                                if(isset($tmp[1])){
+                                        $tmpArray = array(trim($tmp[1]));
+                                }else{
+                                        $tmpArray = array(false);
+                                }
+                                $return[trim($tmp[0])] = $tmpArray;
+                        }
+                }
+                return $return;
+        }
 
 	/**
 	 * function isIgnored
 	 *
-	 * 
+	 *
 	 * @param string $extensionKey the extensionKey to check
 	 * @param array $extensionVersion the version of this extension
-	 * @return boolean true if 
+	 * @return boolean true if
 	 */
 	protected function isIgnored($extensionKey, $extensionVersion) {
 		if(!isset($this->ignoreExtensions[$extensionKey]))
