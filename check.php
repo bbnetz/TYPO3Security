@@ -123,7 +123,7 @@ class TYPO3Security {
 			die('No Path entered. Please read README file.');
 		if(!isset($ops['pathLevel']))
 			die('No pathLevel entered. Please read README file.');
-		$this->path = realpath($ops['path']);
+		$this->path = realpath($ops['path']).DIRECTORY_SEPARATOR;
 		$this->depth = intval($ops['pathLevel']);
 
 		if(isset($ops['searchOutdated']))
